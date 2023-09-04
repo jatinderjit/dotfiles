@@ -1,0 +1,70 @@
+global !p
+import re
+def snake_to_camel(snake):
+    return "".join(v.capitalize() for v in snake.split("_"))
+
+def camel_to_snake(camel):
+    return re.sub(r'(?<!^)(?=[A-Z])', '_', camel).lower()
+endglobal
+
+# snippet  "rep (\d+) (\w+)" "Repeat" r
+# `!p snip.rv = int(match.group(1))*match.group(2)`
+# endsnippet
+
+snippet main "if __name__ == '__main__': ..." b
+if __name__ == "__main__":
+    ${1:unittest.main()}
+endsnippet
+
+snippet competetive_cls "Class template for competetive programming" b
+import unittest
+
+
+class ${1:ClassName}:
+    def __init__(self$2):
+`!p args=[v.split("=")[0].split(":")[0].strip() for v in t[2].split(",") if v.strip() and not v.strip().startswith("*")]
+snip.rv = "\n".join(f"        self.{v} = {v}" for v in args) if args else "        pass"`$0
+
+
+class $1TestCase(unittest.TestCase):
+    def test_`!p snip.rv=camel_to_snake(t[1])`(self):
+        self.assertEqual(1, 1)
+
+
+if __name__ == "__main__":
+    unittest.main()
+endsnippet
+
+snippet competetive_fn "Function template for competetive programming" b
+import unittest
+
+
+def ${1:solve}($2):
+    return
+
+
+class `!p snip.rv=snake_to_camel(t[1])`TestCase(unittest.TestCase):
+    def test_$1(self):
+        self.assertEqual(1, 1)
+
+
+if __name__ == "__main__":
+    unittest.main()
+endsnippet
+
+
+snippet cls "Simple class" b
+
+class ${1:ClassName}:
+    def __init__(self$2):
+`!p args=[v.split("=")[0].split(":")[0].strip() for v in t[2].split(",") if v.strip() and not v.strip().startswith("*")]
+snip.rv = "\n".join(f"        self.{v} = {v}" for v in args) if args else "        pass"`$0
+endsnippet
+
+snippet clsp "Simple class with private variables" b
+
+class ${1:ClassName}:
+    def __init__(self$2):
+`!p args=[v.split("=")[0].split(":")[0].strip() for v in t[2].split(",") if v.strip() and not v.strip().startswith("*")]
+snip.rv = "\n".join(f"        self._{v} = {v}" for v in args) if args else "        pass"`$0
+endsnippet

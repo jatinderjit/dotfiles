@@ -1,0 +1,39 @@
+version: '3.1'
+
+services:
+    wallabag:
+        image: wallabag/wallabag
+        restart: always
+        environment:
+            # For more config, refer: https://hub.docker.com/r/wallabag/wallabag/
+            SYMFONY__ENV__DATABASE_DRIVER: pdo_pgsql
+            SYMFONY__ENV__DATABASE_HOST: <db-host>
+            SYMFONY__ENV__DATABASE_PORT: <db-port>
+            SYMFONY__ENV__DATABASE_NAME: wallabag
+            SYMFONY__ENV__DATABASE_USER: wallabag
+            SYMFONY__ENV__DATABASE_PASSWORD: <db-pass>
+            SYMFONY__ENV__DATABASE_CHARSET: utf8
+            SYMFONY__ENV__SECRET: <random-secret>
+            # SYMFONY__ENV__LOCALE: en
+            # SYMFONY__ENV__MAILER_HOST: 127.0.0.1
+            # SYMFONY__ENV__MAILER_USER: ~
+            # SYMFONY__ENV__MAILER_PASSWORD: ~
+            # SYMFONY__ENV__FROM_EMAIL: wallabag@example.com
+            # SYMFONY__ENV__TWOFACTOR_AUTH: true
+            # SYMFONY__ENV__TWOFACTOR_SENDER: no-reply@wallabag.org
+            SYMFONY__ENV__FOSUSER_REGISTRATION: false
+            # SYMFONY__ENV__FOSUSER_CONFIRMATION: true
+            SYMFONY__ENV__DOMAIN_NAME: https://xxxxxxxxx
+            # SYMFONY__ENV__REDIS_SCHEME: tcp  # tcp, unix, or http
+            SYMFONY__ENV__REDIS_HOST: <redis-host>
+            SYMFONY__ENV__REDIS_PORT: <redis-port>
+            # SYMFONY__ENV__REDIS_PATH: ~  # (defaults to "~", path of the unix socket file)
+            # SYMFONY__ENV__REDIS_PASSWORD: ~
+            # SYMFONY__ENV__SENTRY_DSN: ~
+            # POPULATE_DATABASE: true
+            SYMFONY__ENV__SERVER_NAME: "Wallabag - T2"  # a user-friendly name for the 2FA issuer
+        ports:
+            - <random-port>:80
+        volumes:
+            # Change the disk path, if required
+            - /opt/wallabag/images:/var/www/wallabag/web/assets/images

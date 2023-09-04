@@ -1,0 +1,43 @@
+{
+  // "diagnostic.displayByAle": true,
+  "languageserver": {
+    "clangd": {
+      "command": "clangd",
+      "rootPatterns": ["compile_flags.txt", "compile_commands.json"],
+      "filetypes": ["c", "cc", "cpp", "c++", "objc", "objcpp"]
+    },
+    "golang": {
+      "command": "gopls",
+      "rootPatterns": ["go.mod", ".git/"],
+      "filetypes": ["go"]
+    },
+    "lua": {
+      // Install: https://luals.github.io/#neovim-install
+      "command": "lua-language-server",
+      "rootPatterns": [".git"],
+      "filetypes": ["lua"]
+    }
+  },
+  "markdownlint.config": {
+    "MD010": false,
+    "MD024": false, // Duplicate headings not allowed
+    "MD032": false,
+    "MD033": false,
+    "MD034": false,
+    "MD036": false, // Emphasis used instead of header
+    "MD045": false,
+    "MD047": false
+  },
+  "python.linting.ruffEnabled": true,
+  "python.formatting.provider": "black",
+  "pyright.organizeimports.provider": "isort",
+  "rust-analyzer.checkOnSave": false,
+  "suggest.noselect": true,
+  "coc.source.ultisnips.priority": 50, // Decrease from default 100
+  "coc.source.around.priority": 20,
+  "cSpell.userWords": [
+    "Kubernetes",
+    "Linkedin",
+    "idempotency"
+  ]
+}

@@ -1,0 +1,19 @@
+set surround
+inoremap jk <ESC>
+set hlsearch
+set incsearch
+set ignorecase
+set smartcase
+set so=7
+nnoremap <leader>= :nohl<CR>
+set ideajoin
+set easymotion
+
+sethandler <C-A> n:vim i-x:ide
+sethandler <C-D> n:vim i-x:ide
+sethandler <C-F> n:vim i-x:ide
+sethandler <C-I> n:vim i-x:ide
+sethandler <C-O> n:vim i-x:ide
+sethandler <C-R> n:vim i-x:ide
+sethandler <C-V> n:vim i-x:ide
+sethandler <C-X> n:vim i-x:ide
