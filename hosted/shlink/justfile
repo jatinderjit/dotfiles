@@ -1,0 +1,22 @@
+_container_id := ""
+
+_default:
+    @just --list
+
+stop:
+    sudo docker compose stop
+
+start:
+    sudo docker compose up -d
+
+start_fg:
+    sudo docker compose up
+
+exec *ARGS:
+    sudo docker exec -it {{ _container_id }} {{ ARGS }}
+
+sh:
+    @just exec sh
+
+cmd *ARGS:
+    @just exec shlink {{ ARGS }}

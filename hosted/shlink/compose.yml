@@ -1,0 +1,21 @@
+version: '3.1'
+
+services:
+    shlink:
+        image: shlinkio/shlink:stable
+        restart: always
+        environment:
+            DEFAULT_DOMAIN: ${DEFAULT_DOMAIN:?error}
+            IS_HTTPS_ENABLED: true
+            GEOLITE_LICENSE_KEY: ${GEOLITE_LICENSE_KEY}
+            DB_DRIVER: postgres
+            DB_HOST: host.docker.internal
+            DB_PORT: 5432
+            DB_NAME: shlink
+            DB_USER: shlink
+            DB_PASSWORD: ${DB_PASSWORD:?error}
+        ports:
+            - ${SERVICE_PORT}:8080
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+
