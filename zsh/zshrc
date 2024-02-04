@@ -96,7 +96,7 @@ else
   export EDITOR='nvim'
 fi
 
-# Rosetta
+# Compilation flags (Rosetta)
 alias arch86='arch -x86_64'
 
 ### Fix slowness of pastes with zsh-syntax-highlighting.zsh #########
@@ -155,6 +155,7 @@ alias gap='git add --patch'
 alias gl='git log'
 alias glp='git log --patch'
 alias gdc='git diff --cached'
+alias gst2='git status -uno'  # Don't show untracked files
 unalias gco
 gco() {
   echo "Use \`git switch\` or \`git restore\`";
@@ -169,13 +170,13 @@ alias v=vim
 alias vn="vim -u NONE"  # No plugins, no configurations
 alias vm="vim -u ~/.minimal.vimrc"  # No plugins
 alias vd="vim -d"
-alias f=floaterm  # Vim's terminal
+alias f=floaterm  # open file in the parent vim window from the vim's terminal
 
 alias -g G='| rg'  # global alias (substitute anywhere in a command)
 alias -g Gi='| rg -i'  # global alias (substitute anywhere in a command)
 alias -s git='git clone'
 
-alias ls=exa
+alias ls='exa --icons'
 
 alias cat="bat --theme=1337"
 export MANPAGER="sh -c 'col -bx | bat --theme=Dracula -l man -p'"
@@ -183,9 +184,11 @@ export MANPAGER="sh -c 'col -bx | bat --theme=Dracula -l man -p'"
 alias rgn='rg --no-ignore'  # to ignore .gitignore (and other ignore files)
 alias rgf='rg --files-with-matches'  # just print filenames
 alias rgi='rg -i'
-alias fdi='fd -i'
 alias fdn='fd --no-ignore'
+alias fdi='fd -i'
 
+alias pyserver='$PYENV_ROOT/versions/generic/bin/python -m http.server'
+alias djtest='py manage.py test'
 
 sp() {
     if [ -z "$1" ]; then
@@ -194,6 +197,7 @@ sp() {
         vim "$HOME/tmp/scratchpad.$1"
     fi
 }
+
 
 # direnv (directory based environment variables)
 #
@@ -213,11 +217,31 @@ mov_to_mp4() {
 }
 
 
+#TODO: check why ipython, pip was aliased
+# unalias ipython
+unalias pip  # aliased to 'noglob pip'
+
+# Open ipython if called without args
+py() {
+  if [ $# -eq 0 ]; then
+    ipython
+  else
+    python $*
+  fi
+}
+
+# Open irb if called without args
+rb() {
+  if [ $# -eq 0 ]; then
+    irb
+  else
+    ruby $*
+  fi
+}
+
 alias j=just
 
-
 # export CDPATH="$HOME/projects"  # This doesn't play well with /bin/sh
-
 export JAVA_HOME="/Applications/Android Studio.app/Contents/jre/Contents/Home"
 
 export PATH="$PATH:/opt/homebrew/opt/openssl@3/bin"
@@ -242,18 +266,14 @@ export PATH="$PATH:/opt/dasm"
 # vim $(rg . | fzf | cut -d ":" -f 1)   # live search, and open file
 export PATH="$PATH:/opt/homebrew/opt/fzf/bin"
 
-#TODO: check why ipython, pip was aliased
-# unalias ipython
-unalias pip  # aliased to 'noglob pip'
-alias py=python
-alias pyserver='$PYENV_ROOT/versions/generic/bin/python -m http.server'
-alias djtest='py manage.py test'
+# cd into a python package's import path
+# Example: `pycd django` will drop you in the Django's root directory.
 pycd() {
     DIR=$(python -c "import os, $1; print(os.sep.join($1.__file__.split(os.sep)[:-1]))")
     pushd $DIR
 }
-# Creates a virtualenv (venv folder) in the current directory,
-# from the generic pyenv-virtualenv
+
+# Creates a virtualenv (venv folder) in the current directory
 venv() {
     # xargs trims the whitespace
     SRC=$(pyenv versions | rg -v '\-\->' | rg -v system | fzf | xargs)
@@ -278,19 +298,24 @@ install *ARGS:
 EOM
 }
 
+venv_activate() {
+    pyenv global system  # otherwise it messes with the PATH
+    . ./venv/bin/activate
+}
+
 # To enable gpg signing (git commits)
 export GPG_TTY=$(tty)
 
 source ~/.iterm2_shell_integration.zsh
 
+# cd into the current git repository's root
 0() {
     local PROJ_ROOT=$(git rev-parse --show-toplevel)
     cd $PROJ_ROOT
 }
 
 disk_usage() {
-    df -h | head -n1
-    df -h | grep Data | grep disk
+    df -h | sd 'Mounted on' 'Mounted_on' | choose 0.. -o ',' | rg 'Filesystem|disk3s5' | sd 'Mounted_on' 'Mounted on' | csview
 }
 
 alias nx='npx nx'
@@ -303,8 +328,52 @@ eval "$(starship init zsh)"
 
 eval "$(rbenv init - zsh)"
 
+export ASDF_DIR="/opt/asdf"
+export ASDF_CONFIG_FILE="$HOME/.config/asdf/asdfrc"
+export ASDF_DATA_DIR="$HOME/.config/asdf/data"
+. "${ASDF_DIR}/asdf.sh"
+fpath=(${ASDF_DIR}/completions $fpath)
+autoload -Uz compinit && compinit
+
 export PATH="$PATH:/Applications/Racket v8.9/bin"
+
+# bun completions
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
 # bun
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
+
+# OCR: Copy to clipboard
+# Ref: https://blog.greg.technology/2024/01/02/how-do-you-ocr-on-a-mac.html
+alias ocr='shortcuts run ocr-text -i'
+
+# Notify after a long running task completes
+# Example: `make build && notify "Built!"`
+notify () {
+    osascript -e "display notification \"$2\" with title \"$1\" sound name \"Glass\""
+}
+
+# Popup to ask for user confirmation.
+# Helpful in a long-running multi-stage script, as it steals the focus.
+confirm() {
+    if [ $# -eq 0 ]; then
+        echo "Enter date (example: $(date '+%d-%b-%Y'))"
+        return 1
+    fi
+    osascript -e "display dialog \"$1\"" &> /dev/null
+    local EXIT_STATUS=$?
+    if [ $EXIT_STATUS -ne 0 ]; then
+        echo 'no'
+    else
+        echo 'yes'
+    fi
+}
+
+# Shell history in SQLite
+eval "$(atuin init zsh --disable-up-arrow)"
+
+llm_chat() {
+    LLM_CHAT_MODEL='mistral'  # alternate: llama2
+    $PYENV_ROOT/versions/ollama/bin/python -c "import sys, ollama; prompt = ' '.join(sys.argv[1:]); res = ollama.chat(model='$LLM_CHAT_MODEL', messages=[{'role': 'user', 'content': prompt}]); print(res['message']['content'])" $*
+}

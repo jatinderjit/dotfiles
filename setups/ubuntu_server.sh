@@ -1,7 +1,5 @@
 #/usr/bin/zsh
 
-# BASIC SERVER SETUP
-
 set -e
 
 SERVER_NAME=
@@ -78,7 +76,7 @@ download_install() {
     popd
 }
 
-sudo apt install -y ripgrep exa
+sudo apt install -y ripgrep exa fd-find
 download_install choose https://github.com/theryangeary/choose/releases/download/v1.3.4/choose-x86_64-unknown-linux-gnu
 download_install bat https://github.com/sharkdp/bat/releases/download/v0.23.0/bat-v0.23.0-x86_64-unknown-linux-gnu.tar.gz
 download_install dust https://github.com/bootandy/dust/releases/download/v0.8.6/dust-v0.8.6-x86_64-unknown-linux-gnu.tar.gz
@@ -147,9 +145,10 @@ omz reload
 
 # Go ##########################################################################
 cd /tmp/
-wget https://go.dev/dl/go1.20.5.linux-amd64.tar.gz
-sudo mv go /opt/go-1.20.5
-sudo ln -s /opt/go-1.20.5 /opt/go
+wget https://go.dev/dl/go1.21.5.linux-amd64.tar.gz
+tar -xf go1.21.5.linux-amd64.tar.gz
+sudo mv go /opt/go-1.21.5
+sudo ln -s /opt/go-1.21.5 /opt/go
 echo 'export PATH=/opt/go/bin:$PATH' >> ~/.zshrc
 omz reload
 

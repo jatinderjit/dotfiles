@@ -13,3 +13,6 @@ eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 
 export PATH="$PATH:$HOME/.pub-cache/bin"
+
+export PATH="$PATH:$HOME/.ghcup/bin"
+export PATH="$PATH:$HOME/.cabal/bin"
