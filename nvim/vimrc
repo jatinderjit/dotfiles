@@ -17,7 +17,11 @@ let g:loaded_perl_provider = 0
 
 " vim-plug {{{
 if has('nvim')
-  call plug#begin('~/.config/nvim/bundle')
+    if !empty($NVIM_APPNAME)
+        call plug#begin('~/.config/'.$NVIM_APPNAME.'/bundle')
+    else
+        call plug#begin('~/.config/nvim/bundle')
+    endif
 else
   call plug#begin('~/.vim/bundle')
 endif
