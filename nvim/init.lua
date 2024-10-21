@@ -90,9 +90,11 @@ setup_telescope()
 require("auto-session").setup()
 require("telescope").load_extension("session-lens")
 
-require("indent_blankline").setup()
-require("nvim-autopairs").setup() -- TODO: setup enter behaviour
+-- https://github.com/lukas-reineke/indent-blankline.nvim
+require("ibl").setup()
+
 -- https://github.com/windwp/nvim-autopairs/wiki/Completion-plugin
+require("nvim-autopairs").setup {map_cr = false}
 require("project_nvim").setup()
 require("telescope").load_extension("projects")
 
@@ -129,6 +131,14 @@ local function setup_nvim_tree()
 	-- })
 end
 setup_nvim_tree()
+
+require("astrotheme").setup({
+  palette = "astrodark", -- String of the default palette to use when calling `:colorscheme astrotheme`
+  background = { -- :h background, palettes to use when using the core vim background colors
+    light = "astrolight",
+    dark = "astrodark",
+  },
+})
 
 local function setup_ufo_folds()
 	-- Using ufo provider need remap `zR` and `zM`. If Neovim is 0.6.1, remap yourself

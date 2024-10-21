@@ -31,13 +31,9 @@
   "python.linting.ruffEnabled": true,
   "python.formatting.provider": "black",
   "pyright.organizeimports.provider": "isort",
-  "rust-analyzer.checkOnSave": false,
+  //"rust-analyzer.checkOnSave": false,
   "suggest.noselect": true,
   "coc.source.ultisnips.priority": 50, // Decrease from default 100
   "coc.source.around.priority": 20,
-  "cSpell.userWords": [
-    "Kubernetes",
-    "Linkedin",
-    "idempotency"
-  ]
+  "cSpell.userWords": ["Kubernetes", "Linkedin", "idempotency"]
 }

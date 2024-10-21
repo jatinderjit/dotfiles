@@ -22,6 +22,8 @@ else
   call plug#begin('~/.vim/bundle')
 endif
 
+Plug 'folke/which-key.nvim'
+
 " Text {{{
 Plug 'alvan/vim-closetag'
 Plug 'windwp/nvim-autopairs'
@@ -122,8 +124,8 @@ Plug 'honza/vim-snippets'  " Ulisnip snippets (they are separated from engine)
 " Plug 'mileszs/ack.vim'     " Search in files
 " Plug 'Shougo/vimproc.vim', { 'do': 'make' }  " Interactive command execution
 Plug 'vim-test/vim-test'
-Plug 'mfussenegger/nvim-dap'
-Plug 'rcarriga/nvim-dap-ui'
+" Plug 'mfussenegger/nvim-dap'
+" Plug 'rcarriga/nvim-dap-ui'
 
 " gS to split a one-liner into multiple lines
 " gJ (with the cursor on the first line of a block) to join a block into a single-line statement.
@@ -204,6 +206,7 @@ Plug 'catppuccin/nvim', { 'as': 'catppuccin' }
 Plug 'folke/tokyonight.nvim'
 " onehalflight and onehalfdark, also airline_theme
 Plug 'sonph/onehalf', { 'rtp': 'vim' }
+Plug 'AstroNvim/astrotheme'
 " }}} Colorscheme
 
 call plug#end()
@@ -217,14 +220,16 @@ runtime macros/matchit.vim  " 3  for jumping between tags with %
 
 " General {{{
 " With a map leader it's possible to do extra key combinations
-let mapleader = "\\"
-let g:mapleader = "\\"
+" let mapleader = "\\"
+" let g:mapleader = "\\"
+let mapleader = " "
+let g:mapleader = " "
 set tm=1000                                   " Set leader key timeout
-nnoremap <leader>w :w!<cr>                    " Fast saving
-nnoremap <leader>q :q<cr>                     " Fast quit
-" nnoremap <leader>c :bdelete<CR>               " Close buffer and quit window
-nnoremap <leader>c :Bdelete<CR>               " Close buffer and maintain window
-nnoremap <leader>x :x<cr>                     " Fast save & quit
+nnoremap <leader>w <cmd>w<cr>
+nnoremap <leader>q <cmd>q<cr>
+" nnoremap <leader>c :bdelete<CR>             " Close buffer and quit window
+nnoremap <leader>c <cmd>Bdelete<CR>           " Close buffer and maintain window
+nnoremap <leader>x <cmd>x<cr>                 " Fast save & quit
 set noerrorbells                              " No annoying sound on errors
 set vb t_vb=                                  " No annoying sound on errors
 set backspace=indent,eol,start                " allow backspacing over everything in insert mode
@@ -437,8 +442,10 @@ inoremap <expr><S-TAB> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
 
 " Make <CR> to accept selected completion item or notify coc.nvim to format
 " <C-g>u breaks current undo, please make your own choice
-inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm()
-                              \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
+" inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm()
+"                               \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
+inoremap <silent><expr> <cr> coc#pum#visible() ? coc#pum#confirm() :
+  \ "\<C-g>u\<c-r>=v:lua.require'nvim-autopairs'.autopairs_cr()\<CR>"
 
 " Use <c-space> to trigger completion.
 inoremap <silent><expr> <c-space> coc#refresh()
@@ -488,7 +495,7 @@ nnoremap <M-a>  <Plug>(coc-codeaction-cursor)
 " Remap keys for apply code actions affect whole buffer
 nnoremap <leader>as  <Plug>(coc-codeaction-source)
 " Apply the most preferred quickfix action to fix diagnostic on the current line
-nnoremap <leader>qf  <Plug>(coc-fix-current)
+nnoremap <leader>af  <Plug>(coc-fix-current)
 
 " Remap keys for applying refactor code actions
 nnoremap <silent> <leader>re <Plug>(coc-codeaction-refactor)
@@ -540,21 +547,21 @@ set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
 " CoC Extensions {{{
 " Mappings using CoCList:
 " Show all diagnostics
-nnoremap <silent><nowait> <space>a  :<C-u>CocList diagnostics<cr>
+" nnoremap <silent><nowait> <space>a  :<C-u>CocList diagnostics<cr>
 " Manage extensions
-nnoremap <silent><nowait> <space>e  :<C-u>CocList extensions<cr>
+" nnoremap <silent><nowait> <space>e  :<C-u>CocList extensions<cr>
 " Show commands
-nnoremap <silent><nowait> <space>c  :<C-u>CocList commands<cr>
+" nnoremap <silent><nowait> <space>c  :<C-u>CocList commands<cr>
 " Find symbol of current document
 nnoremap <silent><nowait> <space>o  :<C-u>CocList outline<cr>
 " Search workspace symbols
-nnoremap <silent><nowait> <space>s  :<C-u>CocList -I symbols<cr>
+" nnoremap <silent><nowait> <space>s  :<C-u>CocList -I symbols<cr>
 " Do default action for next item
 nnoremap <silent><nowait> <space>j  :<C-u>CocNext<CR>
 " Do default action for previous item
 nnoremap <silent><nowait> <space>k  :<C-u>CocPrev<CR>
 " Resume latest coc list
-nnoremap <silent><nowait> <space>p  :<C-u>CocListResume<CR>
+" nnoremap <silent><nowait> <space>p  :<C-u>CocListResume<CR>
 
 " unmap <C-i>
 
@@ -879,7 +886,7 @@ let g:ctrlp_cache_dir = $HOME.'/.cache/ctrlp'
 let g:ctrlp_use_caching = 1
 " let g:ctrlp_user_command = 'ag %s -l --nocolor -g "" --ignore node_modules --ignore bower_components --ignore "*.map" --ignore "*.eot" --ignore "*.woff" --ignore "*.woff2" --ignore "*.eot" --ignore "*.ttf" --ignore __pycache__ --ignore "*.pyc"'
 let g:ctrlp_user_command = ['.git', 'cd %s && git ls-files -co --exclude-standard']
-nmap <c-l> :CtrlPRoot<enter>
+nmap <c-l> :CtrlPRoot<cr>
 " }}}
 
 " airline {{{
@@ -936,7 +943,7 @@ let g:closetag_filenames = '*.html,*.xhtml,*.phtml,*.jsx,*.tsx'
 " }}}
 
 " Ultisnip {{{
-let g:UltiSnipsExpandTrigger="<leader><tab>"
+let g:UltiSnipsExpandTrigger="\\<tab>"
 let g:UltiSnipsJumpForwardTrigger="<c-b>"
 let g:UltiSnipsJumpBackwardTrigger="<c-v>"
 " }}}
@@ -1044,7 +1051,8 @@ nmap <leader>fc <leader>fg<<<<<<ESC>
 " nnoremap <leader>fc <cmd>Telescope colorscheme<CR>
 " nnoremap <leader>fk <cmd>Telescope keymaps<CR>
 nnoremap <leader>fs <cmd>Telescope session-lens<CR>
-nnoremap <leader>ft :Telescope<CR>
+nnoremap <leader>ft <cmd>Telescope<CR>
+nnoremap <c-s-p> <cmd>Telescope commands<cr>
 " telescope }}}
 
 " terminal {{{
