@@ -1,0 +1,9 @@
+[manager]
+sort_by = "modified"
+sort_reverse = true
+sort_sensitive = false # Case-insensitive sorting
+sort_dir_first = true  # List directories first
+
+show_symlink = true # Show path of symlink target, after the filename
+
+show_hidden = false # Press `.` to toggle hidden files

@@ -1,0 +1,12 @@
+[manager]
+
+# Add a keymap to the manager, with higher priority
+prepend_keymap = []
+
+append_keymap = [
+  { on = "<Tab>", run = "tab_switch 1 --relative", desc = "Go to the next tab" },
+  { on = "<BackTab>", run = "tab_switch -1 --relative", desc = "Go to the previous tab" },
+
+  { on = [ "<A-k>" ], run = "peek -5", desc = "Peek up 5 units in the preview" },
+  { on = [ "<A-j>" ], run = "peek 5",  desc = "Peek down 5 units in the preview" },
+]
