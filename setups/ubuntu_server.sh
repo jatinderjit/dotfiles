@@ -7,7 +7,7 @@ INSTALL_OH_MY_ZSH_PLUGINS=true
 INSTALL_PYENV=true  # Installs at /opt/pyenv
 INSTALL_POETRY=true  # Installs at /opt/poetry
 INSTALL_GO=true  # Installs at /opt/go
-GO_VERSION=1.22.0
+GO_VERSION=1.23.2
 INSTALL_RUST=false
 INSTALL_POSTGRES=false
 INSTALL_REDIS=false
@@ -157,7 +157,7 @@ add_zsh_plugin eza
 # fd ##########################################################################
 repo="https://github.com/sharkdp/fd"
 version=$(latest_release_version $repo true)
-download_install "$repo/releases/latest/download/fd-musl_${version}_amd64.deb"
+download_install fd "$repo/releases/latest/download/fd-musl_${version}_amd64.deb"
 
 # bat #########################################################################
 repo="https://github.com/sharkdp/bat"
@@ -223,6 +223,7 @@ install_if_required $INSTALL_CERTBOT Certbot certbot install_certbot
 # rsync --archive --chown=$NEW_USERNAME:$NEW_USERNAME ~/.ssh /home/$NEW_USERNAME
 # rsync --archive --chown=$NEW_USERNAME:$NEW_USERNAME ~/.oh-my-zsh /home/$NEW_USERNAME
 # rsync --archive --chown=$NEW_USERNAME:$NEW_USERNAME ~/.zshrc /home/$NEW_USERNAME
+# rsync --archive --chown=$NEW_USERNAME:$NEW_USERNAME ~/.config /home/$NEW_USERNAME
 
 
 # Disable SSH Password Access  ################################################
@@ -261,23 +262,23 @@ install_if_required $INSTALL_POETRY Poetry poetry install_poetry
 
 # Go ##########################################################################
 install_go() {
-    wget "https://go.dev/dl/go{$GO_VERSION}.linux-amd64.tar.gz"
-    tar -xf "go{$GO_VERSION}.linux-amd64.tar.gz"
-    sudo mv go "/opt/go-{$GO_VERSION}"
-    sudo ln -s "/opt/go-{$GO_VERSION}" /opt/go
+    wget "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz"
+    tar -xf "go${GO_VERSION}.linux-amd64.tar.gz"
+    sudo mv go "/opt/go-${GO_VERSION}"
+    sudo ln -s "/opt/go-${GO_VERSION}" /opt/go
     echo 'export PATH=/opt/go/bin:$PATH' >> ~/.zshrc
 }
 install_if_required $INSTALL_GO Go go install_go
 
 # Redis #######################################################################
-sudo apt install redis-server
+sudo apt install -y redis-server
 sudo systemctl stop redis
 sudo systemctl disable redis
 install_if_required $INSTALL_REDIS Redis redis-server install_redis
 
 # Postgres ####################################################################
 install_postgres() {
-    sudo apt install postgresql postgis libpq-dev
+    sudo apt install -y postgresql postgis libpq-dev
     sudo systemctl stop postgresql
     sudo systemctl disable postgresql
 }
