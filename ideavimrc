@@ -1,19 +1,157 @@
-set surround
+" References
+" Share your `~/.ideavimrc`: https://github.com/JetBrains/ideavim/discussions/303
+" https://github.com/JetBrains/ideavim/discussions/303?sort=new#discussioncomment-7664118
+" https://towardsdatascience.com/the-essential-ideavim-remaps-291d4cd3971b
+
 inoremap jk <ESC>
 set hlsearch
 set incsearch
 set ignorecase
 set smartcase
-set so=7
-nnoremap <leader>= :nohl<CR>
-set ideajoin
+set scrolloff=7
+set sidescrolloff=7
+nnoremap \= :nohl<CR>
+
+set matchit
+set surround
+
+set which-key
+set notimeout
+" set timeoutlen=5000
+
+" This plugin provides a text-object 'a' (argument). You can
+" d(elete), c(hange), v(select)... an argument or inner argument in familiar ways.
+set argtextobj
+
+set highlightedyank
+
+" Text object based on indentation levels. Useful for Python.
+" vii: select lines with the same indentation level as the current line.
+" vai: same as vii, but with a line above.
+" vaI: same as vii, but with a line and below.
+set textobj-indent
+
+" Ref: https://github.com/JetBrains/ideavim/wiki/NERDTree-support
+" x: close the current node's parent
+" X: recursively close all children of the current node
+" p: jump to the parent of the current node
+" P: jump to the root node
+" o: open selected file/directory/bookmarks
+" i: open selected file in split view
+" s: open selected file in vertical split view
+" t: open selected file in new tab
+" n: create a new file
+" N: create a new directory
+set NERDTree
+nnoremap <M-e> :NERDTree<CR>
+
 set easymotion
 
+" set sneak
+set quickscope
+let g:qs_highlight_on_keys = ['f', 'F', 't', 'T']
+
 sethandler <C-A> n:vim i-x:ide
-sethandler <C-D> n:vim i-x:ide
+sethandler <C-D> n-v:vim i:ide
 sethandler <C-F> n:vim i-x:ide
 sethandler <C-I> n:vim i-x:ide
 sethandler <C-O> n:vim i-x:ide
 sethandler <C-R> n:vim i-x:ide
 sethandler <C-V> n:vim i-x:ide
 sethandler <C-X> n:vim i-x:ide
+
+abbreviate ipdb __import__("ipdb").set_trace()
+
+let mapleader=" "
+nnoremap <leader>z :action ToggleDistractionFreeMode<CR>
+
+""" Navigation
+nnoremap <c-\> :action SplitVertically<CR>
+nnoremap <c--> :action SplitHorizontally<CR>
+nnoremap <c-=> :action Unsplit<CR>
+nnoremap <c-m> :action MoveEditorToOppositeTabGroup<CR>
+
+sethandler <c-j> a:vim
+sethandler <c-k> a:vim
+nnoremap <c-h> <c-w>h
+nnoremap <c-l> <c-w>l
+nnoremap <c-j> <c-w>j
+nnoremap <c-k> <c-w>k
+
+nnoremap <c-t> :action ActivateTerminalToolWindow<CR>
+" Open terminal in the current file's directory.
+nnoremap <leader>t :action Terminal.OpenInTerminal<CR>
+
+nnoremap <TAB> :action PreviousTab<CR>
+nnoremap <s-TAB> :action NextTab<CR>
+
+""" Editing source code
+" Ref: https://github.com/JetBrains/ideavim/wiki/ideajoin-examples
+set ideajoin
+
+" When renaming a variable, the input box starts in "select" mode.
+" Typing replaces the selected text.
+" Ref: https://github.com/JetBrains/ideavim/wiki/Select-mode
+set idearefactormode=normal
+
+vnoremap < <gv
+vnoremap > >gv
+nnoremap [[ :action MethodUp<CR>
+nnoremap ]] :action MethodDown<CR>
+
+nnoremap <leader>l :action RecentLocations<CR>
+nnoremap <leader>r :action Refactorings.QuickListPopupAction<CR>
+
+""" Search and Code Navigation
+nnoremap <leader>s :action GotoRelated<CR>
+nnoremap <leader>h :action CallHierarchy<CR>
+nnoremap <leader>b :action ShowNavBar<CR>
+nnoremap gc :action GotoClass<CR>
+nnoremap gi :action GotoImplementation<CR>
+nnoremap gd :action GotoDeclaration<CR>
+nnoremap gp :action GotoSuperMethod<CR>
+nnoremap gt :action GotoTest<CR>
+nnoremap gb :action Back<CR>
+nnoremap <C-o> :action Back<CR>
+nnoremap <C-i> :action Forward<CR>
+
+nmap <leader>fu <Action>(FindUsages)
+nmap <leader>fs <Action>(FileStructurePopup)
+nmap <leader>su <Action>(ShowUsages)
+nmap <leader>hl <Action>(HighlightUsagesInFile)
+nmap <leader>qp <Action>(QuickPreview)
+nmap <leader>qd <Action>(QuickDefinition)
+nmap <leader>qD <Action>(QuickTypeDefinition)
+
+""" Running and Debugging
+" ContextRun runs the code at the cursor
+nnoremap ,r :action ContextRun<CR>
+nnoremap ,d :action ContextDebug<CR>
+nnoremap <leader>b :action ToggleLineBreakpoint<CR>
+nnoremap ,c :action RunClass<CR>
+nnoremap ,f :action ChooseRunConfiguration<CR>
+nnoremap ,t :action ActivateRunToolWindow<CR>
+nnoremap ,u :action Rerun<CR>
+
+""" Bookmarks
+nnoremap mm :action ToggleBookmark<CR>
+nnoremap ms :action ShowBookmarks<CR>
+
+""" Git
+nnoremap [g :action VcsShowPrevChangeMarker<CR>
+nnoremap ]g :action VcsShowNextChangeMarker<CR>
+nnoremap <leader>gp :action VcsShowCurrentChangeMarker<CR>
+
+" []
+nnoremap [b :action PreviousTab<CR>
+nnoremap ]b :action NextTab<CR>
+nnoremap [e :action GotoPreviousError<CR>
+nnoremap ]e :action GotoNextError<CR>
+nnoremap [u :action GotoPrevElementUnderCaretUsage<CR>
+nnoremap ]u :action GotoNextElementUnderCaretUsage<CR>
+nnoremap [o :action PreviousOccurence<CR>
+nnoremap ]o :action NextOccurence<CR>
+nnoremap [m :action MethodUp<CR>
+nnoremap ]m :action MethodDown<CR>
+nnoremap [c :action JumpToLastChange<CR>
+nnoremap ]c :action JumpToNextChange<CR>

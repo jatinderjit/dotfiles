@@ -1,0 +1,59 @@
+[user]
+	name = Jatinderjit Singh
+	email = jatinderjit89@gmail.com
+
+[core]
+	pager = delta
+
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+
+; [pull]
+; 	rebase = true
+;
+[init]
+	defaultBranch = main
+
+[alias]
+	undo-commit = reset 'HEAD@{1}'
+	frbi = "!f() { git rebase -i $(git log --pretty=oneline --color=always | fzf --ansi | cut -d ' ' -f1)^ ; }; f"
+	dft = difftool
+	# `git log -p` equivalent with difftool
+	; dlog = "!f() { : git log ; GIT_EXTERNAL_DIFF=difft git log -p --ext-diff $@; }; f"
+	dlog = "log -p --ext-diff"
+	diff-side-by-side = -c delta.features=side-by-side diff
+
+; [rerere]
+; 	enabled = true
+
+[column]
+	ui = auto
+
+[branch]
+	sort = -committerdate
+
+[diff]
+	tool = difftastic
+	external = difft # difftastic by default
+	colorMoved = default
+
+[difftool]
+	prompt = false
+
+[difftool "difftastic"]
+	cmd = difft "$LOCAL" "$REMOTE"
+
+[pager]
+	difftool = true
+
+[interactive]
+	diffFilter = delta --color-only
+
+; [delta]
+; 	navigate = true # use n and N to navigate between diff sections
+
+[merge]
+	conflictstyle = diff3
