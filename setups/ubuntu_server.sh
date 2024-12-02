@@ -1,30 +1,66 @@
-#/usr/bin/zsh
+#/usr/bin/env zsh
 
 SERVER_NAME=
-GITHUB_USERNAMES=(jatinderjit) # space separated usernames to add ssh keys
+
+# space separated usernames to add ssh keys
+GITHUB_USERNAMES=(jatinderjit)
+
 INSTALL_OH_MY_ZSH=true  # Mandatory
 INSTALL_OH_MY_ZSH_PLUGINS=true
+
 INSTALL_PYENV=true  # Installs at /opt/pyenv
 INSTALL_POETRY=true  # Installs at /opt/poetry
+
 INSTALL_GO=true  # Installs at /opt/go
-GO_VERSION=1.23.2
+GO_VERSION=1.23.3
+
 INSTALL_RUST=false
+
 INSTALL_POSTGRES=false
+DISABLE_POSTGRES=true
+
 INSTALL_REDIS=false
+DISABLE_REDIS=true
+
 INSTALL_NGINX=true
-INSTALL_CERTBOT=true
+INSTALL_CERTBOT=false
+
 BIN_PATH='/usr/local/bin'
+NEW_USERNAME=
 
 # END: Configuration ##########################################################
 
 set -e
+
+if [ -z "$SERVER_NAME" ]; then
+    echo "SERVER_NAME is not set"
+    exit 1
+fi
+
+ARCHITECTURE=$(uname -m)
+
+choose_by_arch() {
+    # First argument is for x86_64, second for aarch64.
+    # Usage: choose_by_arch x86_64 aarch64
+    if [[ $ARCHITECTURE == "x86_64" ]]; then
+        echo $1
+    elif [[ $ARCHITECTURE == "aarch64" ]]; then
+        echo $2
+    else
+        echo "Unknown architecture: $ARCHITECTURE"
+        exit 1
+    fi
+}
+
+echo "$(choose_by_arch 'x86_64' 'aarch64') architecture detected"
+
 
 cd /tmp
 
 sudo apt update
 sudo apt upgrade
 
-sudo apt install -y zsh git gettext zip unzip
+sudo apt install -y zsh git cmake gettext zip unzip
 sudo apt install -y build-essential libssl-dev zlib1g-dev \
   libbz2-dev libreadline-dev libsqlite3-dev curl \
   libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
@@ -42,6 +78,25 @@ for username in $GITHUB_USERNAMES; do
     echo "\n# $username" >> ~/.ssh/authorized_keys
     curl "https://github.com/$username.keys" >> ~/.ssh/authorized_keys
 done
+
+# oh-my-zsh ###################################################################
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+
+cat > ~/.oh-my-zsh/custom/themes/custom.zsh-theme <<- EOM
+local ret_status="%{\$fg_bold[red]%}%{\$bg[white]%} \$USER @ SERVER_NAME %{\$reset_color%} %(?:%{\$fg_bold[green]%}➜ :%{\$fg_bold[red]%}➜ )"
+
+PROMPT='\${ret_status} %{\$fg[cyan]%}%c%{\$reset_color%} \$(git_prompt_info)'  # %{\$bg[red]%}'
+
+ZSH_THEME_GIT_PROMPT_PREFIX="%{\$fg_bold[blue]%}git:(%{\$fg[red]%}"
+ZSH_THEME_GIT_PROMPT_SUFFIX="%{\$reset_color%} "
+ZSH_THEME_GIT_PROMPT_DIRTY="%{\$fg[blue]%}) %{\$fg[yellow]%}✗"
+ZSH_THEME_GIT_PROMPT_CLEAN="%{\$fg[blue]%})"
+EOM
+
+sed -i "s/SERVER_NAME/$SERVER_NAME/" ~/.oh-my-zsh/custom/themes/custom.zsh-theme
+sed -i 's/ZSH_THEME="robbyrussell"/ZSH_THEME="custom"/' ~/.zshrc
+
+mkdir -p $ZSH/custom/completions
 
 # Utilities ###################################################################
 
@@ -127,16 +182,28 @@ install_manpage() {
     sudo mandb
 }
 
-wget https://github.com/theryangeary/choose/releases/latest/download/choose-x86_64-unknown-linux-gnu
-install_bin choose choose-x86_64-unknown-linux-gnu
+CHOOSE_BIN=$(choose_by_arch 'choose-x86_64-unknown-linux-gnu' 'choose-aarch64-unknown-linux-gnu')
+wget "https://github.com/theryangeary/choose/releases/latest/download/$CHOOSE_BIN"
+install_bin choose "$CHOOSE_BIN"
 
 if [ $(which nvim) ]; then
     echo "Already installed: nvim"
 else
-    download_extract https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz
-    sudo mv nvim-linux64 /opt/nvim
-    echo >> ~/.zshrc
-    echo 'export PATH="/opt/nvim/bin:$PATH"' >> ~/.zshrc
+    if [[ $ARCHITECTURE == "x86_64" ]]; then
+        download_extract https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz
+        sudo mv nvim-linux64 /opt/nvim
+        echo >> ~/.zshrc
+        echo 'export PATH="/opt/nvim/bin:$PATH"' >> ~/.zshrc
+    elif [[ $ARCHITECTURE == "aarch64" ]]; then
+        # Refer: https://luther.io/articles/how-to-install-neovim-on-raspberry-pi/
+        git clone https://github.com/neovim/neovim.git
+        cd neovim
+        make CMAKE_BUILD_TYPE=Release
+        cd build
+        cpack -G DEB
+        sudo dpkg -i nvim-linux64.deb
+        cd ..
+    fi
     echo "Installed: nvim"
 fi
 
@@ -148,53 +215,65 @@ install_if_required $INSTALL_RUST Rust cargo install_rust
 # ripgrep #####################################################################
 repo="https://github.com/BurntSushi/ripgrep"
 version=$(latest_release_version $repo)
-download_install rg "$repo/releases/latest/download/ripgrep-${version}-x86_64-unknown-linux-musl.tar.gz"
-add_zsh_plugin ripgrep
+RG_BIN=$(choose_by_arch "ripgrep-${version}-x86_64-unknown-linux-musl.tar.gz" "ripgrep-${version}-aarch64-unknown-linux-gnu.tar.gz")
+download_install rg "$repo/releases/latest/download/$RG_BIN"
+rg --generate complete-zsh > "$ZSH/custom/completions/_rg"
 
-download_install eza https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-musl.tar.gz
+# eza #########################################################################
+
+EZA_BIN=$(choose_by_arch 'eza_x86_64-unknown-linux-musl.tar.gz' 'eza_aarch64-unknown-linux-gnu.tar.gz')
+download_install eza "https://github.com/eza-community/eza/releases/latest/download/$EZA_BIN"
 add_zsh_plugin eza
 
 # fd ##########################################################################
 repo="https://github.com/sharkdp/fd"
 version=$(latest_release_version $repo true)
-download_install fd "$repo/releases/latest/download/fd-musl_${version}_amd64.deb"
+FD_BIN="fd-musl_${version}_$(choose_by_arch amd64 arm64).deb"
+download_install fd "$repo/releases/latest/download/$FD_BIN"
 
 # bat #########################################################################
 repo="https://github.com/sharkdp/bat"
 version=$(latest_release_version $repo true)
-download_install x "$repo/releases/latest/download/bat-musl_${version}_amd64.deb"
+BAT_BIN=$(choose_by_arch "bat-musl_${version}_amd64.deb" "bat-v${version}-aarch64-unknown-linux-gnu.tar.gz")
+download_install bat "$repo/releases/latest/download/$BAT_BIN"
 
 # sd ##########################################################################
-download_install sd https://github.com/chmln/sd/releases/download/v1.0.0/sd-v1.0.0-x86_64-unknown-linux-musl.tar.gz
+SD_ARCHIVE=$(choose_by_arch 'sd-v1.0.0-x86_64-unknown-linux-musl.tar.gz' 'sd-v1.0.0-aarch64-unknown-linux-musl.tar.gz')
+download_install sd "https://github.com/chmln/sd/releases/download/v1.0.0/$SD_ARCHIVE"
 
 # dust ########################################################################
 repo="https://github.com/bootandy/dust"
 version=$(latest_release_version $repo true)
-download_install x "$repo/releases/latest/download/du-dust_${version}-1_amd64.deb"
+DUST_BIN=$(choose_by_arch "du-dust_${version}-1_amd64.deb" "dust-v${version}-aarch64-unknown-linux-gnu.tar.gz")
+download_install dust "$repo/releases/latest/download/$DUST_BIN"
 
 # jq ##########################################################################
-download_install jq https://github.com/jqlang/jq/releases/latest/download/jq-linux-amd64
+JQ_BIN=$(choose_by_arch 'jq-linux-x86_64' 'jq-linux-arm64')
+download_install jq "https://github.com/jqlang/jq/releases/latest/download/$JQ_BIN"
 
 # lnav ########################################################################
-repo="https://github.com/tstack/lnav"
-version=$(latest_release_version $repo true)
-download_extract "$repo/releases/latest/download/lnav-${version}-linux-musl-x86_64.zip"
-install_bin lnav "lnav-$version/lnav"
-install_manpage "lnav-$version/lnav.1"
-rm -r "lnav-$version"
+
+# Not available for aarch64
+if [[ $ARCHITECTURE == "x86_64" ]]; then
+    repo="https://github.com/tstack/lnav"
+    version=$(latest_release_version $repo true)
+    download_extract "$repo/releases/latest/download/lnav-${version}-linux-musl-x86_64.zip"
+    install_bin lnav "lnav-$version/lnav"
+    install_manpage "lnav-$version/lnav.1"
+    rm -r "lnav-$version"
+fi
 
 # just ########################################################################
 repo="https://github.com/casey/just"
 version=$(latest_release_version $repo)
-download_extract "$repo/releases/latest/download/just-${version}-x86_64-unknown-linux-musl.tar.gz"
+JUST_BIN="just-${version}-$(choose_by_arch x86_64 aarch64)-unknown-linux-musl.tar.gz"
+download_extract "$repo/releases/latest/download/$JUST_BIN"
 install_bin just
 install_manpage 'just.1'
-mkdir -p $ZSH/custom/plugins/just
-just --completions zsh >> $ZSH/custom/plugins/just/_just
-add_zsh_plugin just
+just --completions zsh >> $ZSH/custom/completions/_just
 
 # Vim #########################################################################
-sudo wget https://gist.githubusercontent.com/jatinderjit/f51b7cb01ec7bca4297b0f9f782e4eb1/raw/ba46fae8241a7a43c54672037fc07bb4f7b0427e/vimrc -O /etc/vim/vimrc.local
+sudo wget https://gist.githubusercontent.com/jatinderjit/f51b7cb01ec7bca4297b0f9f782e4eb1/raw/fc70f8d6be693fb5ac5b1c09a6f8413c2a1159d7/vimrc -O /etc/vim/vimrc.local
 mkdir -p ~/.config/nvim
 echo 'source /etc/vim/vimrc.local' > ~/.config/nvim/init.vim
 
@@ -216,15 +295,17 @@ install_if_required $INSTALL_CERTBOT Certbot certbot install_certbot
 
 # Create User #################################################################
 
-# read -p "Enter new User name: " NEW_USERNAME
-# adduser $NEW_USERNAME
-# usermod -aG sudo $NEW_USERNAME
-# chsh -s `which zsh` $NEW_USERNAME
-# rsync --archive --chown=$NEW_USERNAME:$NEW_USERNAME ~/.ssh /home/$NEW_USERNAME
-# rsync --archive --chown=$NEW_USERNAME:$NEW_USERNAME ~/.oh-my-zsh /home/$NEW_USERNAME
-# rsync --archive --chown=$NEW_USERNAME:$NEW_USERNAME ~/.zshrc /home/$NEW_USERNAME
-# rsync --archive --chown=$NEW_USERNAME:$NEW_USERNAME ~/.config /home/$NEW_USERNAME
-
+if [ -z "$NEW_USERNAME" ]; then
+    echo "Not creating new user"
+else
+    sudo adduser $NEW_USERNAME
+    sudo usermod -aG sudo $NEW_USERNAME
+    sudo chsh -s `which zsh` $NEW_USERNAME
+    sudo rsync --archive --chown=$NEW_USERNAME:$NEW_USERNAME ~/.ssh /home/$NEW_USERNAME
+    sudo rsync --archive --chown=$NEW_USERNAME:$NEW_USERNAME ~/.oh-my-zsh /home/$NEW_USERNAME
+    sudo rsync --archive --chown=$NEW_USERNAME:$NEW_USERNAME ~/.zshrc /home/$NEW_USERNAME
+    sudo rsync --archive --chown=$NEW_USERNAME:$NEW_USERNAME ~/.config /home/$NEW_USERNAME
+fi
 
 # Disable SSH Password Access  ################################################
 sudo cp /etc/ssh/sshd_config /tmp
@@ -262,8 +343,9 @@ install_if_required $INSTALL_POETRY Poetry poetry install_poetry
 
 # Go ##########################################################################
 install_go() {
-    wget "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz"
-    tar -xf "go${GO_VERSION}.linux-amd64.tar.gz"
+    local ARCHIVE="go${GO_VERSION}.linux-$(choose_by_arch amd64 arm64).tar.gz"
+    wget "https://go.dev/dl/$ARCHIVE"
+    tar -xf "$ARCHIVE"
     sudo mv go "/opt/go-${GO_VERSION}"
     sudo ln -s "/opt/go-${GO_VERSION}" /opt/go
     echo 'export PATH=/opt/go/bin:$PATH' >> ~/.zshrc
@@ -271,35 +353,24 @@ install_go() {
 install_if_required $INSTALL_GO Go go install_go
 
 # Redis #######################################################################
-sudo apt install -y redis-server
-sudo systemctl stop redis
-sudo systemctl disable redis
+install_redis() {
+    sudo apt install -y redis-server
+    sudo systemctl stop redis
+    if $DISABLE_REDIS; then
+        sudo systemctl disable redis
+    fi
+}
 install_if_required $INSTALL_REDIS Redis redis-server install_redis
 
 # Postgres ####################################################################
 install_postgres() {
     sudo apt install -y postgresql postgis libpq-dev
     sudo systemctl stop postgresql
-    sudo systemctl disable postgresql
+    if $DISABLE_POSTGRES; then
+        sudo systemctl disable postgresql
+    fi
 }
 install_if_required $INSTALL_POSTGRES Postgres psql install_postgres
-
-# oh-my-zsh ###################################################################
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-
-cat > ~/.oh-my-zsh/custom/themes/custom.zsh-theme <<- EOM
-local ret_status="%{\$fg_bold[red]%}%{\$bg[white]%} \$USER @ SERVER_NAME %{\$reset_color%} %(?:%{\$fg_bold[green]%}➜ :%{\$fg_bold[red]%}➜ )"
-
-PROMPT='\${ret_status} %{\$fg[cyan]%}%c%{\$reset_color%} \$(git_prompt_info)'  # %{\$bg[red]%}'
-
-ZSH_THEME_GIT_PROMPT_PREFIX="%{\$fg_bold[blue]%}git:(%{\$fg[red]%}"
-ZSH_THEME_GIT_PROMPT_SUFFIX="%{\$reset_color%} "
-ZSH_THEME_GIT_PROMPT_DIRTY="%{\$fg[blue]%}) %{\$fg[yellow]%}✗"
-ZSH_THEME_GIT_PROMPT_CLEAN="%{\$fg[blue]%})"
-EOM
-
-sed -i "s/SERVER_NAME/$SERVER_NAME/" ~/.oh-my-zsh/custom/themes/custom.zsh-theme
-sed -i 's/ZSH_THEME="robbyrussell"/ZSH_THEME="custom"/' ~/.zshrc
 
 # zshrc #######################################################################
 
@@ -340,7 +411,8 @@ add_zsh_plugin zsh-autosuggestions
 git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
 add_zsh_plugin zsh-syntax-highlighting
 
-git clone https://github.com/zsh-users/zsh-history-substring-search ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-history-substring-search
-add_zsh_plugin zsh-history-substring-search
+# git clone https://github.com/zsh-users/zsh-history-substring-search ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-history-substring-search
+# add_zsh_plugin zsh-history-substring-search
+add_zsh_plugin history-substring-search
 
 sd 'plugins=\(git\)' "plugins=($(echo $ZSH_PLUGINS)\n)" ~/.zshrc
