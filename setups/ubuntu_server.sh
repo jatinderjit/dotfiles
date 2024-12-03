@@ -37,6 +37,10 @@ if [ -z "$SERVER_NAME" ]; then
     exit 1
 fi
 
+rm -rf /tmp/server-setup
+mkdir /tmp/server-setup
+cd /tmp/server-setup
+
 ARCHITECTURE=$(uname -m)
 
 choose_by_arch() {
@@ -55,8 +59,6 @@ choose_by_arch() {
 echo "$(choose_by_arch 'x86_64' 'aarch64') architecture detected"
 
 
-cd /tmp
-
 sudo apt update
 sudo apt upgrade
 
@@ -64,6 +66,9 @@ sudo apt install -y zsh git cmake gettext zip unzip
 sudo apt install -y build-essential libssl-dev zlib1g-dev \
   libbz2-dev libreadline-dev libsqlite3-dev curl \
   libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
+
+# lnav
+sudo apt install -y libcurl4-openssl-dev libpcre2-dev
 
 ZSH_PLUGINS=''
 add_zsh_plugin () {
@@ -253,14 +258,20 @@ download_install jq "https://github.com/jqlang/jq/releases/latest/download/$JQ_B
 
 # lnav ########################################################################
 
-# Not available for aarch64
+repo="https://github.com/tstack/lnav"
+version=$(latest_release_version $repo true)
 if [[ $ARCHITECTURE == "x86_64" ]]; then
-    repo="https://github.com/tstack/lnav"
-    version=$(latest_release_version $repo true)
     download_extract "$repo/releases/latest/download/lnav-${version}-linux-musl-x86_64.zip"
     install_bin lnav "lnav-$version/lnav"
     install_manpage "lnav-$version/lnav.1"
     rm -r "lnav-$version"
+elseif [[ $ARCHITECTURE == "aarch64" ]]; then
+    download_extract "$repo/releases/latest/download/lnav-${version}.tar.gz"
+    cd "lnav-${version}"
+    ./configure
+    make
+    sudo make install
+    cd ..
 fi
 
 # just ########################################################################
