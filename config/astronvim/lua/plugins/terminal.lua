@@ -1,5 +1,9 @@
+local utils = require "utils"
+local platform = utils.platform
+
 local get_mappings = function()
   local maps = { n = {}, v = {} }
+  local maps2 = {}
 
   if vim.fn.executable "lazygit" == 1 then
     maps.n["<leader>gg"] = {
@@ -11,18 +15,36 @@ local get_mappings = function()
       -- end,
       desc = "Lazygit",
     }
+    table.insert(maps2, { "<leader>gg", "<cmd>FloatermNew --height=0.8 --width=0.8 lazygit<CR>", desc = "Lazygit" })
   end
+
   maps.n["<leader>tj"] = { ":FloatermNew --autoclose=0 just", desc = "Just" }
+  table.insert(maps2, { "<leader>tj", ":FloatermNew --autoclose=0 just", desc = "Just" })
+
   maps.n["<leader>j"] = {
     "<cmd>FloatermNew --autoclose=0 --width=1.0 --height=0.4 --position=bottom just<cr>",
     desc = "Just (default)",
   }
+
+  table.insert(
+    maps2,
+    {
+      "<leader>j",
+      "<cmd>FloatermNew --autoclose=0 --width=1.0 --height=0.4 --position=bottom just<cr>",
+      desc = "Just (default)",
+    }
+  )
+
+  -- TODO
   maps.v["<leader>ts"] = {
     "<cmd>'<,'>FloatermSend<CR><cmd>FloatermToggle<cr>",
     desc = "Send to Terminal",
   }
+
   maps.n["<leader>tp"] = { "<cmd>FloatermNew ipython<cr>", desc = "Open ipython" }
-  return maps
+  table.insert(maps2, { "<leader>tp", "<cmd>FloatermNew ipython<cr>", desc = "Open ipython" })
+
+  return maps2
 end
 
 ---@type LazySpec
@@ -40,10 +62,16 @@ return {
       vim.g.floaterm_opener = "edit"
       vim.g.floaterm_width = 0.6
       vim.g.floaterm_height = 0.99
-      vim.g.floaterm_shell = "/opt/homebrew/bin/zsh"
+      if platform.is_mac then
+        vim.g.floaterm_shell = "/opt/homebrew/bin/zsh"
+      elseif platform.is_windows then
+        vim.g.floaterm_shell = "pwsh"
+      end
       vim.g.floaterm_position = "right"
+
+      -- set_mappings()
     end,
-    opts = { mappings = get_mappings() },
+    keys = get_mappings(),
     config = function()
       -- vim.api.nvim_create_autocmd({ "BufEnter" }, {
       --   pattern = { "*.py" },

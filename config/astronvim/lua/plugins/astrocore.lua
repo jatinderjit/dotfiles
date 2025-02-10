@@ -58,7 +58,7 @@ return {
         swapfile = false,
         scrolloff = 6,
         colorcolumn = "80",
-        textwidth = 80,
+        -- textwidth = 80,
         title = true,
       },
       g = { -- vim.g.<key>

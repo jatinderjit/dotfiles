@@ -31,6 +31,7 @@ vim.api.nvim_create_autocmd({ "BufEnter" }, {
     -- }
 
     vim.opt_local.conceallevel = 1
+    vim.opt_local.textwidth = 80
     -- Macro to convert bare URLs
     vim.fn.setreg("l", "ysaWbi[]jki")
   end,

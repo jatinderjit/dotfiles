@@ -105,7 +105,7 @@ nnoremap <leader>r :action Refactorings.QuickListPopupAction<CR>
 """ Search and Code Navigation
 nnoremap <leader>s :action GotoRelated<CR>
 nnoremap <leader>h :action CallHierarchy<CR>
-nnoremap <leader>b :action ShowNavBar<CR>
+nnoremap <leader>e :action ShowNavBar<CR>
 nnoremap gc :action GotoClass<CR>
 nnoremap gi :action GotoImplementation<CR>
 nnoremap gd :action GotoDeclaration<CR>

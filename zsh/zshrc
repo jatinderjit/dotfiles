@@ -73,18 +73,28 @@ ZSH_THEME="robbyrussell"
 export NVM_DIR="/opt/nvm"
 plugins=(
     git
+
+    # md ~/.oh-my-zsh/custom/plugins/github-copilot
+    # gh copilot alias -- zsh > ~/.oh-my-zsh/custom/plugins/github-copilot/github-copilot.plugin.zsh
+    github-copilot
+
     # python
     pip
     # poetry
+
     zsh-autosuggestions
     zsh-syntax-highlighting
     history-substring-search
+
     # you-should-use
     z.lua
     fzf
     rust
     eza
     nvm
+    # anybar
+    zsh-vi-mode  # https://github.com/jeffreytse/zsh-vi-mode
+    bundler gem
 )
 
 source $ZSH/oh-my-zsh.sh
@@ -152,6 +162,8 @@ zstyle :bracketed-paste-magic paste-finish pastefinish              #
 # bindkey -M menuselect 'j' vi-down-line-or-history                     #
 ######################## End:   ZSH Vim mode  ###########################
 
+ZVM_VI_INSERT_ESCAPE_BINDKEY=jk
+
 # Git aliases
 alias gap='git add --patch'
 alias gl='git log'
@@ -162,7 +174,7 @@ unalias gco
 gco() {
   echo "Use \`git switch\` or \`git restore\`";
 }
-gh () {
+gh1 () {
   git clone "git@github.com:$1.git" $2
 }
 # unalias gr
@@ -170,7 +182,7 @@ gh () {
 alias vim="nvim"
 alias v=vim
 alias vn="vim -u NONE"  # No plugins, no configurations
-alias vm="vim -u ~/.minimal.vimrc"  # No plugins
+alias vm="vim -u ~/.vimrc.minimal"  # No plugins
 alias vd="vim -d"
 
 alias -s git='git clone'
@@ -182,17 +194,24 @@ export MANPAGER="sh -c 'col -bx | bat --theme=Dracula -l man -p'"
 alias rgn='rg --no-ignore'  # to ignore .gitignore (and other ignore files)
 alias rgf='rg --files-with-matches'  # or `rg -l` just print filenames
 alias rgi='rg -i'
+alias rgfi='rgf -i'
 
 alias -g G='| rg'  # global alias (substitute anywhere in a command)
-alias -g Gi='G -i'  # global alias (substitute anywhere in a command)
+alias -g Gf='G --files-with-matches'
+alias -g Gi='G -i'
+alias -g Gfi='Gf -i'
 
 # Useful to incrementally filter files
 # Example: `rgf -i query1 Fi query2 Fi query`
-alias -g F='| tr "\n" "\0" | xargs -0 rg -l'
+alias -g F='| tr "\n" "\0" | xargs -0 rg'
+alias -g Ff='F --files-with-matches'
 alias -g Fi='F -i'
+alias -g Ffi='Ff -i'
 
 alias fdn='fd --no-ignore'
 alias fdi='fd -i'
+
+alias diff='difft --color=always'
 
 alias pyserver='$PYENV_ROOT/versions/generic/bin/python -m http.server'
 alias djtest='py manage.py test'
@@ -286,6 +305,7 @@ venv() {
     # xargs trims the whitespace
     SRC=$1
     if [[ -z $SRC ]]; then
+        # SRC=$(pyenv versions | rg -v '\-\->' | rg -v system | gum choose | xargs)
         SRC=$(pyenv versions | rg -v '\-\->' | rg -v system | fzf | xargs)
     fi
     if [[ -z $SRC ]]; then
@@ -323,7 +343,9 @@ EOM
 # To enable gpg signing (git commits)
 export GPG_TTY=$(tty)
 
-source ~/.iterm2_shell_integration.zsh
+if [ "$TERM_PROGRAM" = "iTerm.app" ]; then
+    source ~/.iterm2_shell_integration.zsh
+fi
 
 # cd into the current git repository's root
 0() {
@@ -371,7 +393,7 @@ notify () {
 # Helpful in a long-running multi-stage script, as it steals the focus.
 confirm() {
     if [ $# -eq 0 ]; then
-        echo "Enter date (example: $(date '+%d-%b-%Y'))"
+        echo "Confirm what?"
         return 1
     fi
     osascript -e "display dialog \"$1\"" &> /dev/null
