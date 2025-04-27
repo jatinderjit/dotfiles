@@ -26,8 +26,8 @@
 	dlog = "log -p --ext-diff"
 	diff-side-by-side = -c delta.features=side-by-side diff
 
-; [rerere]
-; 	enabled = true
+[rerere]
+	enabled = true
 
 [column]
 	ui = auto
