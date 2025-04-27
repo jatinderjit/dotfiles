@@ -24,10 +24,11 @@ return {
   { import = "astrocommunity.pack.dart" },
   { import = "astrocommunity.pack.go" },
   { import = "astrocommunity.pack.html-css" },
+  { import = "astrocommunity.pack.just" },
   { import = "astrocommunity.pack.lua" },
   { import = "astrocommunity.pack.python-ruff" },
   -- { import = "astrocommunity.pack.ruby" },
   { import = "astrocommunity.pack.rust" },
-  { import = "astrocommunity.pack.just" },
   { import = "astrocommunity.pack.typescript" },
+  { import = "astrocommunity.pack.zig" },
 }

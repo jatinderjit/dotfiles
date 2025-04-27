@@ -65,7 +65,8 @@ return {
       if platform.is_mac then
         vim.g.floaterm_shell = "/opt/homebrew/bin/zsh"
       elseif platform.is_windows then
-        vim.g.floaterm_shell = "pwsh"
+        -- vim.g.floaterm_shell = "pwsh"
+        vim.g.floaterm_shell = "nu"
       end
       vim.g.floaterm_position = "right"
 
