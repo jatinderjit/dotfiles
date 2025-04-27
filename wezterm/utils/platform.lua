@@ -1,5 +1,5 @@
 -- Copied from https://github.com/KevinSilvester/wezterm-config/blob/master/utils/platform.lua
-local wezterm = require('wezterm')
+local wezterm = require("wezterm")
 
 local function is_found(str, pattern)
    return string.find(str, pattern) ~= nil
@@ -9,19 +9,19 @@ end
 
 ---@return {os: PlatformType, is_win: boolean, is_linux: boolean, is_mac: boolean}
 local function platform()
-   local is_win = is_found(wezterm.target_triple, 'windows')
-   local is_linux = is_found(wezterm.target_triple, 'linux')
-   local is_mac = is_found(wezterm.target_triple, 'apple')
+   local is_win = is_found(wezterm.target_triple, "windows")
+   local is_linux = is_found(wezterm.target_triple, "linux")
+   local is_mac = is_found(wezterm.target_triple, "apple")
    local os
 
    if is_win then
-      os = 'windows'
+      os = "windows"
    elseif is_linux then
-      os = 'linux'
+      os = "linux"
    elseif is_mac then
-      os = 'mac'
+      os = "mac"
    else
-      error('Unknown platform')
+      error("Unknown platform")
    end
 
    return {
