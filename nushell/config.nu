@@ -96,6 +96,8 @@ const platform_config = if $nu.os-info.name == "windows" {
   "linux.nu"
 }
 source ($nu.data-dir | path join $platform_config)
+
+$env.config.completions.algorithm = "fuzzy"
 source ($nu.data-dir | path join "completers.nu")
 
 
@@ -187,3 +189,5 @@ source ($completion_root | path join "ssh/ssh-completions.nu")
 source ($completion_root | path join "tar/tar-completions.nu")
 source ($completion_root | path join "tealdeer/tldr-completions.nu")
 source ($completion_root | path join "yarn/yarn-v4-completions.nu")
+
+source "./zoxide.nu"
