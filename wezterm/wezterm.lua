@@ -40,8 +40,10 @@ local color_scheme_dark = "Tokyo Night"
 
 -- https://wezfurlong.org/wezterm/colorschemes/index.html
 if appearance.is_dark() then
+   ENV_OVERRIDES["TERMINAL_COLOR_MODE"] = "dark"
    config.color_scheme = color_scheme_dark
 else
+   ENV_OVERRIDES["TERMINAL_COLOR_MODE"] = "light"
    config.color_scheme = color_scheme_light
 end
 

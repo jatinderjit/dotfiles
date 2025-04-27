@@ -44,7 +44,33 @@ alias vi = nvim
 alias vim = nvim
 alias vd = nvim -d
 
-alias cat = bat
+const light_mode = {
+  mode: "light",
+  bat-theme: "gruvbox-light",
+}
+
+const dark_mode = {
+  mode: "dark",
+  bat-theme: "1337",
+}
+
+if $env.TERMINAL_COLOR_MODE? == null {
+  $env.TERMINAL_COLOR_MODE = 'dark'
+}
+
+def current-mode [] {
+  if $env.TERMINAL_COLOR_MODE == 'light' { $light_mode } else { $dark_mode }
+}
+
+def --env enable-dark-mode [] {
+  $env.TERMINAL_COLOR_MODE = 'dark'
+}
+
+def --env enable-light-mode [] {
+  $env.TERMINAL_COLOR_MODE = 'light'
+}
+
+alias cat = bat --theme $"(current-mode | get bat-theme)"
 
 alias rgn = rg --no-ignore  # to ignore .gitignore (and other ignore files)
 alias rgf = rg --files-with-matches # or `rg -l` just print filenames
