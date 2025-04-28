@@ -168,26 +168,24 @@ def setup-autoloads [] {
   # just --completions nushell | add-to-autoload just
 }
 
+# Custom completions
+source "completions/zoxide.nu"
 
 # Git clone: https://github.com/nushell/nu_scripts.git
-const completion_root = $nu.data-dir | path join "nu_scripts/custom-completions"
-
-source ($completion_root | path join "bat/bat-completions.nu")
-source ($completion_root | path join "cargo/cargo-completions.nu")
-source ($completion_root | path join "eza/eza-completions.nu")
-source ($completion_root | path join "flutter/flutter-completions.nu")
-source ($completion_root | path join "git/git-completions.nu")
-source ($completion_root | path join "glow/glow-completions.nu")
-source ($completion_root | path join "just/just-completions.nu")
-source ($completion_root | path join "make/make-completions.nu")
-source ($completion_root | path join "npm/npm-completions.nu")
-source ($completion_root | path join "pre-commit/pre-commit-completions.nu")
-source ($completion_root | path join "rg/rg-completions.nu")
-source ($completion_root | path join "rustup/rustup-completions.nu")
-source ($completion_root | path join "scoop/scoop-completions.nu")
-source ($completion_root | path join "ssh/ssh-completions.nu")
-source ($completion_root | path join "tar/tar-completions.nu")
-source ($completion_root | path join "tealdeer/tldr-completions.nu")
-source ($completion_root | path join "yarn/yarn-v4-completions.nu")
-
-source "./zoxide.nu"
+source "nu_scripts/custom-completions/bat/bat-completions.nu"
+source "nu_scripts/custom-completions/cargo/cargo-completions.nu"
+source "nu_scripts/custom-completions/eza/eza-completions.nu"
+source "nu_scripts/custom-completions/flutter/flutter-completions.nu"
+source "nu_scripts/custom-completions/git/git-completions.nu"
+source "nu_scripts/custom-completions/glow/glow-completions.nu"
+source "nu_scripts/custom-completions/just/just-completions.nu"
+source "nu_scripts/custom-completions/make/make-completions.nu"
+source "nu_scripts/custom-completions/npm/npm-completions.nu"
+source "nu_scripts/custom-completions/pre-commit/pre-commit-completions.nu"
+source "nu_scripts/custom-completions/rg/rg-completions.nu"
+source "nu_scripts/custom-completions/rustup/rustup-completions.nu"
+source "nu_scripts/custom-completions/scoop/scoop-completions.nu"
+source "nu_scripts/custom-completions/ssh/ssh-completions.nu"
+source "nu_scripts/custom-completions/tar/tar-completions.nu"
+source "nu_scripts/custom-completions/tealdeer/tldr-completions.nu"
+source "nu_scripts/custom-completions/yarn/yarn-v4-completions.nu"
