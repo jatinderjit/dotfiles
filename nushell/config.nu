@@ -18,6 +18,7 @@
 # them for future reference.
 
 use std/dirs
+use utils.nu *
 
 $env.config.shell_integration.osc133 = false
 
@@ -33,11 +34,13 @@ def --env mkcd [path: string] {
   cd $path
 }
 
+alias md = mkdir
+
 alias .. = cd ..
 alias ... = cd ../..
 alias .... = cd ../../..
 
-alias l = ls -l
+alias l = eza -l
 
 alias v = nvim
 alias vi = nvim
@@ -47,27 +50,36 @@ alias vd = nvim -d
 const light_mode = {
   mode: "light",
   bat-theme: "gruvbox-light",
+  ls-colors: "catppuccin-latte",
 }
 
 const dark_mode = {
   mode: "dark",
   bat-theme: "1337",
-}
-
-if $env.TERMINAL_COLOR_MODE? == null {
-  $env.TERMINAL_COLOR_MODE = 'dark'
+  ls-colors: "tokyonight-moon",
 }
 
 def current-mode [] {
   if $env.TERMINAL_COLOR_MODE == 'light' { $light_mode } else { $dark_mode }
 }
 
-def --env enable-dark-mode [] {
-  $env.TERMINAL_COLOR_MODE = 'dark'
+def --env set-color-mode [mode_config] {
+  $env.TERMINAL_COLOR_MODE = ($mode_config | get mode)
+  $env.LS_COLORS = ^vivid generate ($mode_config | get ls-colors)
 }
 
 def --env enable-light-mode [] {
-  $env.TERMINAL_COLOR_MODE = 'light'
+  set-color-mode $light_mode
+}
+
+def --env enable-dark-mode [] {
+  set-color-mode $dark_mode
+}
+
+if $env.TERMINAL_COLOR_MODE? == 'light' {
+  enable-light-mode
+} else {
+  enable-dark-mode
 }
 
 alias cat = bat --theme $"(current-mode | get bat-theme)"
@@ -103,7 +115,15 @@ source ($nu.data-dir | path join "completers.nu")
 
 def --wrapped py [...args] {
   if ($args | is-empty) {
-    ipython
+
+    # Try executing the following line on the shell.
+    # It raises an error: SyntaxError: invalid character '╭' (U+256D)
+    # The SyntaxError is raised only when it executes the catch block!
+    # nushell bug?
+    # try { ipython } catch { python }  <-- syntax error for python and python3
+    # try { ipython } catch { ls }  #  <-- This works
+
+    if (is-installed "ipython") { ipython } else { python }
   } else {
     python ...$args
   }
@@ -126,7 +146,13 @@ alias gdd = git ddiff
 alias gddc = git ddiff --cached
 alias gf = git fetch
 alias gfo = git fetch origin
-alias ggl = git pull origin 
+def --wrapped ggl [...args] {
+  if ($args | is-empty) {
+    git pull origin (git rev-parse --abbrev-ref HEAD)
+  } else {
+    git pull origin ...$args
+  }
+}
 alias gl = git log
 alias glp = git log --patch
 alias gm = git merge
