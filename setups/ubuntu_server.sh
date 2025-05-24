@@ -87,19 +87,19 @@ done
 # oh-my-zsh ###################################################################
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 
-cat > ~/.oh-my-zsh/custom/themes/custom.zsh-theme <<- EOM
-local ret_status="%{\$fg_bold[red]%}%{\$bg[white]%} \$USER @ SERVER_NAME %{\$reset_color%} %(?:%{\$fg_bold[green]%}➜ :%{\$fg_bold[red]%}➜ )"
+cat > ~/.oh-my-zsh/custom/themes/robbyrussell-custom.zsh-theme <<- EOM
+local server_info="%{\$fg_bold[red]%}%{\$bg[white]%} \$USER @ SERVER_NAME %{\$reset_color%}"
+PROMPT="${server_info} %(?:%{$fg_bold[green]%}%1{➜%} :%{$fg_bold[red]%}%1{➜%} ) %{$fg[cyan]%}%c%{$reset_color%}"
+PROMPT+=' $(git_prompt_info)'
 
-PROMPT='\${ret_status} %{\$fg[cyan]%}%c%{\$reset_color%} \$(git_prompt_info)'  # %{\$bg[red]%}'
-
-ZSH_THEME_GIT_PROMPT_PREFIX="%{\$fg_bold[blue]%}git:(%{\$fg[red]%}"
-ZSH_THEME_GIT_PROMPT_SUFFIX="%{\$reset_color%} "
-ZSH_THEME_GIT_PROMPT_DIRTY="%{\$fg[blue]%}) %{\$fg[yellow]%}✗"
-ZSH_THEME_GIT_PROMPT_CLEAN="%{\$fg[blue]%})"
+ZSH_THEME_GIT_PROMPT_PREFIX="%{$fg_bold[blue]%}git:(%{$fg[red]%}"
+ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%} "
+ZSH_THEME_GIT_PROMPT_DIRTY="%{$fg[blue]%}) %{$fg[yellow]%}%1{✗%}"
+ZSH_THEME_GIT_PROMPT_CLEAN="%{$fg[blue]%})"
 EOM
 
-sed -i "s/SERVER_NAME/$SERVER_NAME/" ~/.oh-my-zsh/custom/themes/custom.zsh-theme
-sed -i 's/ZSH_THEME="robbyrussell"/ZSH_THEME="custom"/' ~/.zshrc
+sed -i "s/SERVER_NAME/$SERVER_NAME/" ~/.oh-my-zsh/custom/themes/robbyrussell-custom.zsh-theme
+sed -i 's/ZSH_THEME="robbyrussell"/ZSH_THEME="robbyrussell-custom"/' ~/.zshrc
 
 mkdir -p $ZSH/custom/completions
 
@@ -194,21 +194,11 @@ install_bin choose "$CHOOSE_BIN"
 if [ $(which nvim) ]; then
     echo "Already installed: nvim"
 else
-    if [[ $ARCHITECTURE == "x86_64" ]]; then
-        download_extract https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz
-        sudo mv nvim-linux64 /opt/nvim
-        echo >> ~/.zshrc
-        echo 'export PATH="/opt/nvim/bin:$PATH"' >> ~/.zshrc
-    elif [[ $ARCHITECTURE == "aarch64" ]]; then
-        # Refer: https://luther.io/articles/how-to-install-neovim-on-raspberry-pi/
-        git clone https://github.com/neovim/neovim.git
-        cd neovim
-        make CMAKE_BUILD_TYPE=Release
-        cd build
-        cpack -G DEB
-        sudo dpkg -i nvim-linux64.deb
-        cd ..
-    fi
+    NVIM_TAR=$(choose_by_arch 'nvim-linux-x86_64' 'nvim-linux-arm64')
+    download_extract "https://github.com/neovim/neovim/releases/latest/download/${NVIM_TAR}.tar.gz"
+    sudo mv $NVIM_TAR /opt/nvim
+    echo >> ~/.zshrc
+    echo 'export PATH="/opt/nvim/bin:$PATH"' >> ~/.zshrc
     echo "Installed: nvim"
 fi
 
@@ -239,7 +229,7 @@ download_install fd "$repo/releases/latest/download/$FD_BIN"
 # bat #########################################################################
 repo="https://github.com/sharkdp/bat"
 version=$(latest_release_version $repo true)
-BAT_BIN=$(choose_by_arch "bat-musl_${version}_amd64.deb" "bat-v${version}-aarch64-unknown-linux-gnu.tar.gz")
+BAT_BIN=$(choose_by_arch "bat-v${version}-x86_64-unknown-linux-gnu.tar.gz" "bat-v${version}-aarch64-unknown-linux-gnu.tar.gz")
 download_install bat "$repo/releases/latest/download/$BAT_BIN"
 
 # sd ##########################################################################
@@ -253,26 +243,15 @@ DUST_BIN=$(choose_by_arch "du-dust_${version}-1_amd64.deb" "dust-v${version}-aar
 download_install dust "$repo/releases/latest/download/$DUST_BIN"
 
 # jq ##########################################################################
-JQ_BIN=$(choose_by_arch 'jq-linux-x86_64' 'jq-linux-arm64')
+JQ_BIN=$(choose_by_arch 'jq-linux-amd64' 'jq-linux-arm64')
 download_install jq "https://github.com/jqlang/jq/releases/latest/download/$JQ_BIN"
 
 # lnav ########################################################################
 
 repo="https://github.com/tstack/lnav"
 version=$(latest_release_version $repo true)
-if [[ $ARCHITECTURE == "x86_64" ]]; then
-    download_extract "$repo/releases/latest/download/lnav-${version}-linux-musl-x86_64.zip"
-    install_bin lnav "lnav-$version/lnav"
-    install_manpage "lnav-$version/lnav.1"
-    rm -r "lnav-$version"
-elseif [[ $ARCHITECTURE == "aarch64" ]]; then
-    download_extract "$repo/releases/latest/download/lnav-${version}.tar.gz"
-    cd "lnav-${version}"
-    ./configure
-    make
-    sudo make install
-    cd ..
-fi
+LNAV_BIN=$(choose_by_arch "lnav-${version}-linux-musl-x86_64.zip" "lnav-${version}-linux-musl-arm64.zip")
+download_extract "$repo/releases/latest/download/$LNAV_BIN"
 
 # just ########################################################################
 repo="https://github.com/casey/just"
